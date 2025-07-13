@@ -49,8 +49,11 @@
     /file set [/file find name=$ipFile] contents=$ip
 
     :local msg
-    :if ($api="OK") do={ :set msg ("Duck DNS updated to " . $ip) } \
-    else={ :set msg ("Duck DNS update FAILED (" . $api . ")") }
+    :if ($api = "OK") do={
+        :set msg ("Duck DNS updated to " . $ip)
+    } else={
+        :set msg ("Duck DNS update FAILED (" . $api . ")")
+    }
 
     $LogPrint info $ScriptName $msg
 
