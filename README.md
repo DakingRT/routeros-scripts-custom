@@ -1,73 +1,77 @@
-# Custom RouterOS Scripts
+# Custom RouterOS Scripts by DakingRT
 
-[RouterOS](https://mikrotik.com/software) is the operating system developed
-by [MikroTik](https://mikrotik.com/aboutus) for networking tasks. This
-repository holds a number of [scripts](https://wiki.mikrotik.com/wiki/Manual:Scripting)
-to manage RouterOS devices or extend their functionality.
+This repository hosts a small collection of RouterOS **custom scripts** that build on top of the excellent  
+[eworm/routeros-scripts](https://git.eworm.de/cgit/routeros-scripts/about/) framework.
 
-*Use at your own risk*, pay attention to
-[license and warranty](#license-and-warranty)!
-
-## Table of Contents
-
-- [Custom RouterOS Scripts](#custom-routeros-scripts)
-  - [Table of Contents](#table-of-contents)
-  - [Requirements](#requirements)
-  - [Installation](#installation)
-    - [Prerequisites (a.k.a. Install certificates)](#prerequisites-aka-install-certificates)
-    - [Initial Setup](#initial-setup)
-    - [Adding a script](#adding-a-script)
-  - [Available scripts](#available-scripts)
-  - [License and warranty](#license-and-warranty)
+> **Use at your own risk** – see the licence section below.
 
 ## Requirements
 
-This is a repository containing **custom** RouterOS scripts. These do depend
-on upstream project. Visit
-[RouterOS-Scripts](https://git.eworm.de/cgit/routeros-scripts/about/) and
-follow the instructions there for the basic installation and setup.
+1. A MikroTik device running RouterOS 7.x.  
+2. The upstream framework already installed on the router (`global-config.rsc`, `global-config-overlay.rsc`, `global-functions.rsc`).  
+   Follow the instructions on the eworm project page first.
 
 ## Installation
 
-### Initial Setup
+### Adding a script from this repository
 
-Download the `global-functions-custom-dak.rsc` script:
-
-```rsc
-$ScriptInstallUpdate global-functions-custom-phg "base-url=xxxx/";
-```
-
-And finally load my custom functions and add a scheduler to load them on each startup.
+The framework provides the helper function `$ScriptInstallUpdate`.  
+Install any script by naming it (or several, comma-separated) and passing the **base-url** of this repository:
 
 ```rsc
-/system/script/run global-functions-custom-phg;
-/system/scheduler/add name="global-scripts-custom-phg" start-time=startup on-event="/system/script/run global-functions-custom-phg;";
+:global ScriptInstallUpdate;
+$ScriptInstallUpdate duckdns-update \
+    "base-url=https://raw.githubusercontent.com/DakingRT/routeros-scripts-custom/main/"
 ```
 
-### Adding a script
-
-To add a script from the repository run function `$ScriptInstallUpdate` with a comma separated list of script names, as well as the parameter `"base-url=https://git.s1q.dev/phg/routeros-scripts-custom/raw/branch/main/"`.
+If you also want to fetch the sample overlay file shipped here, add it to the list:
 
 ```rsc
-$ScriptInstallUpdate ddns-hetzner,dns-to-ipv6-subnet-resolver "base-url=https://git.s1q.dev/phg/routeros-scripts-custom/raw/branch/main/";
+$ScriptInstallUpdate duckdns-update,global-config-overlay.d/custom-scripts \
+    "base-url=https://raw.githubusercontent.com/DakingRT/routeros-scripts-custom/main/"
 ```
+
+> After the first install run  
+> `/system/script run global-config`  
+> to load any new variables.
+
+---
 
 ## Available scripts
 
+### duckdns-update — keep your Duck DNS record fresh
 
+*File:* `duckdns-update.rsc`  
+*Type:* **normal script** (triggered by a scheduler you create)  
 
-## License and warranty
+| Variable (placed in **global-config-overlay** or in `global-config-overlay.d/custom-scripts`) | Example | Description |
+|------------------------------------------------------------|---------|-------------|
+| `DuckDnsWanInterface` | `pppoe-out1`       | Interface that holds the public IP |
+| `DuckDnsDomain`       | `myhome.duckdns.org` | Duck DNS sub-domain |
+| `DuckDnsToken`        | `1234abcd-…`       | Token shown in Duck DNS dashboard |
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+#### Quick setup
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-[GNU General Public License](COPYING.md) for more details.
+1. **Install the script** (see command above).  
+2. **Edit your overlay** and add the three variables.  
+3. **Reload configuration**  
+   ```rsc
+   /system/script run global-config
+   ```  
+4. **Create a 5-minute scheduler**  
+   ```rsc
+   /system/scheduler/add name="duckdns-update" \
+       start-time=startup interval=5m \
+       on-event="/system/script/run duckdns-update;"
+   ```
 
+The updater now checks every five minutes; if the WAN IP changes it calls the Duck DNS API, writes to the log and (optionally) triggers eworm’s notification helper.
 
 ---
-[⬆️ Go back to top](#top)
+
+## Licence and warranty
+
+This project is released under the **GNU General Public License v3**.  
+See the file `COPYING.md` for the full text.
+
+This software is provided **without any warranty**; you use it entirely at your own risk.
