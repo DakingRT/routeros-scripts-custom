@@ -5,12 +5,12 @@
 # Copyright (c) 2023-2025 DakingRT
 
 :global GlobalFunctionsReady;
-:while ($GlobalFunctionsReady != true) do={ :delay 200ms; };
+:while ($GlobalFunctionsReady != true) do={ :delay 200ms; }
 
 :global GlobalConfigReady;
-:while ($GlobalConfigReady != true) do={ :delay 200ms; };
+:while ($GlobalConfigReady != true) do={ :delay 200ms; }
 
-# Variables definidas por el usuario en el overlay
+# Variables definidas en el overlay
 :global DuckDnsWanInterface;
 :global DuckDnsDomain;
 :global DuckDnsToken;
@@ -32,7 +32,7 @@
     /file/print file=$ipFile;
     :delay 1;
     /file/set [/file/find name=$ipFile] contents="0.0.0.0";
-};
+}
 
 :local old [/file/get [/file/find name=$ipFile] contents];
 
@@ -48,11 +48,12 @@
     /file/remove $resFile;
     /file/set [/file/find name=$ipFile] contents=$ip;
 
-    :local msg ($api = "OK" ? ("Duck DNS updated to " . $ip) : ("Duck DNS update FAILED (" . $api . ")"));
+    :local msg ($api = "OK" ? ("Duck DNS updated to " . $ip) \
+                            : ("Duck DNS update FAILED (" . $api . ")"));
     $LogPrint info $ScriptName $msg;
     $SendNotification2 ({
-        origin   = $ScriptName;
-        subject  = ([$SymbolForNotification "earth"] . " Duck DNS");
-        message  = $msg . "\n";
-        silent   = true });
-};
+        origin  = $ScriptName;
+        subject = ([ $SymbolForNotification "earth" ] . " Duck DNS");
+        message = $msg . "\n";
+        silent  = true })
+}
