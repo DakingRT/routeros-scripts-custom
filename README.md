@@ -13,29 +13,27 @@ This repository hosts a small collection of RouterOS **custom scripts** that bui
 
 ## Installation
 
-### Adding a script from this repository
 
 The framework provides the helper function `$ScriptInstallUpdate`.  
 Install any script by naming it (or several, comma-separated) and passing the **base-url** of this repository:
 
+\nFiles participated:
+x `custom-scripts.rsc` -  Your config file.
+x `custom-scripts.template.rsc` - overlay template; copy its contents into your custom-scripts.rsc and fill in the variables it lists.
+
+### One-liner install
+
 ```rsc
 :global ScriptInstallUpdate;
-$ScriptInstallUpdate duckdns-update \
-    "base-url=https://raw.githubusercontent.com/DakingRT/routeros-scripts-custom/main/"
-```
-
-If you also want to fetch the sample overlay file shipped here, add it to the list:
-
-```rsc
-$ScriptInstallUpdate duckdns-update,global-config-overlay.d/custom-scripts \
-    "base-url=https://raw.githubusercontent.com/DakingRT/routeros-scripts-custom/main/"
+$ScriptInstallUpdate custom-scripts,custom-scripts.template.rsc \
+    "base-url=https://raw.githusercontent.com/DakingRT/routeros-scripts-custom/main/" \
+    "url-suffix="
 ```
 
 > After the first install run  
 > `/system/script run global-config`  
 > to load any new variables.
 
----
 
 ## Available scripts
 
