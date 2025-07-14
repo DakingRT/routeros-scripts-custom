@@ -22,11 +22,9 @@
 :local resFile "duckdns-result.txt"
 :local ipFile  "ipstore.txt"
 
-# IP pública actual
 :local ip [/ip/address/get [find where interface=$DuckDnsWanInterface] value-name=address]
 :set ip [:pick $ip -1 [:find $ip "/" -1]]
 
-# Crear ipstore.txt si no existe
 :if ([/file/print count-only where name=$ipFile] = 0) do={
     /file/print file=$ipFile
     :delay 1
@@ -36,6 +34,7 @@
 :local old [/file/get [/file/find name=$ipFile] contents]
 
 :if ($ip != $old) do={
+
     $LogPrint info $ScriptName ("Duck DNS: " . $old . " -> " . $ip)
 
     /tool/fetch mode=https host=www.duckdns.org port=443 keep-result=yes \
@@ -47,15 +46,14 @@
     /file/remove $resFile
     /file/set [/file/find name=$ipFile] contents=$ip
 
-    :local msg
-    :if ($api = "OK")   do={ :set msg ("Duck DNS updated to " . $ip) }
-    :if ($api != "OK")  do={ :set msg ("Duck DNS update FAILED (" . $api . ")") }
+    :local msg ("Duck DNS update FAILED (" . $api . ")")
+    :if ($api = "OK") do={ :set msg ("Duck DNS updated to " . $ip) }
 
-    $LogPrint info $ScriptName $msg
-    $SendNotification2 ({
-        origin  = $ScriptName;
-        subject = ( [ $SymbolForNotification "earth" ] . " Duck DNS" );
-        message = ( $msg . "\n" );
-        silent  = true })
+    $LogPrint info ($ScriptName." ".$msg)
+
+    $SendNotification2 ({ origin=$ScriptName; \
+      subject=([ $SymbolForNotification "earth" ] . "Duck DNS"); \
+      silent=true; \
+      message=($msg) });
 
 }
