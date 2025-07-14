@@ -5,10 +5,10 @@
 # Copyright (c) 2023-2025 DakingRT
 
 :global GlobalFunctionsReady
-:while ($GlobalFunctionsReady!=true) do={ :delay 200ms }
+:while ($GlobalFunctionsReady != true) do={ :delay 200ms }
 
 :global GlobalConfigReady
-:while ($GlobalConfigReady!=true) do={ :delay 200ms }
+:while ($GlobalConfigReady != true) do={ :delay 200ms }
 
 :global DuckDnsWanInterface
 :global DuckDnsDomain
@@ -23,20 +23,19 @@
 :local ipFile  "ipstore.txt"
 
 # IP pública actual
-:local ip [/ip address get [find where interface=$DuckDnsWanInterface] value-name=address]
+:local ip [/ip/address/get [find where interface=$DuckDnsWanInterface] value-name=address]
 :set ip [:pick $ip -1 [:find $ip "/" -1]]
 
-# Crea ipstore.txt si no existe
-:if ([/file print count-only where name=$ipFile]=0) do={
-    /file print file=$ipFile
+# Crear ipstore.txt si no existe
+:if ([/file/print count-only where name=$ipFile] = 0) do={
+    /file/print file=$ipFile
     :delay 1
-    /file set [/file find name=$ipFile] contents="0.0.0.0"
+    /file/set [/file/find name=$ipFile] contents="0.0.0.0"
 }
 
-:local old [/file get [/file find name=$ipFile] contents]
+:local old [/file/get [/file/find name=$ipFile] contents]
 
-:if ($ip!=$old) do={
-
+:if ($ip != $old) do={
     $LogPrint info $ScriptName ("Duck DNS: " . $old . " -> " . $ip)
 
     /tool/fetch mode=https host=www.duckdns.org port=443 keep-result=yes \
@@ -44,22 +43,19 @@
         src-path=("/update?domains=$DuckDnsDomain&token=$DuckDnsToken&ip=" . $ip)
 
     :delay 4
-    :local api [/file get [/file find name=$resFile] contents]
-    /file remove $resFile
-    /file set [/file find name=$ipFile] contents=$ip
+    :local api [/file/get [/file/find name=$resFile] contents]
+    /file/remove $resFile
+    /file/set [/file/find name=$ipFile] contents=$ip
 
     :local msg
-    :if ($api = "OK") do={
-        :set msg ("Duck DNS updated to " . $ip)
-    } else={
-        :set msg ("Duck DNS update FAILED (" . $api . ")")
-    }
+    :if ($api = "OK")   do={ :set msg ("Duck DNS updated to " . $ip) }
+    :if ($api != "OK")  do={ :set msg ("Duck DNS update FAILED (" . $api . ")") }
 
     $LogPrint info $ScriptName $msg
-
     $SendNotification2 ({
-        origin=$ScriptName;
-        subject=([$SymbolForNotification"earth"]." Duck DNS");
-        message=$msg."\n";
-        silent=true });
+        origin  = $ScriptName;
+        subject = ( [ $SymbolForNotification "earth" ] . " Duck DNS" );
+        message = ( $msg . "\n" );
+        silent  = true })
+
 }
